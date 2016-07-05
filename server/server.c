@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <include/client.h>
 #include <include/drawing.h>
 #include <include/geometry.h>
 #include <include/server.h>
@@ -64,9 +65,12 @@ void recv_var(void* var, size_t var_sz) {
 	memcpy(var, request_data, var_sz);
 }
 
+extern char* geometric_figure_name[4];
+
 void process_request(void) {
 	int geometric_figure_choice;
 	recv_var(&geometric_figure_choice, sizeof(int));
+	printf("Geometric figure choice: %d (%s)\n", geometric_figure_choice, geometric_figure_name[geometric_figure_choice]);
 
 	struct rectangle rectangle;
 	struct triangle triangle;
@@ -76,7 +80,9 @@ void process_request(void) {
 		case 1:
 		case 2:
 			recv_var(&height, sizeof(double));
+			printf("Height: %.2lfmm\n", height);
 			recv_var(&length, sizeof(double));
+			printf("Length: %.2lfmm\n", length);
 			break;
 		case 3:
 			recv_var(&radius, sizeof(double));
@@ -86,9 +92,11 @@ void process_request(void) {
 	struct coordinate center;
 	recv_var(&center.x, sizeof(double));
 	recv_var(&center.y, sizeof(double));
+	printf("Center: (%.2lfmm, %.2lfmm)\n", center.x, center.y);
 
 	double draw_velocity;
 	recv_var(&draw_velocity, sizeof(double));
+	printf("Draw velocity: %.2lfmm/s\n", draw_velocity);
 
 	switch(geometric_figure_choice) {
 		case 1:

@@ -11,6 +11,7 @@
 
 int main(void) {
 	start_client();
+	print_header();
 	show_menu();
 	recv_drawing_progress();
 	close(client_socket);
@@ -34,6 +35,8 @@ void start_client(void) {
 		exit(EXIT_FAILURE);
 	}
 }
+
+extern char* geometric_figure_name[4];
 
 void show_menu(void) {
 	/* Geometric figure selection */
@@ -71,11 +74,13 @@ void show_menu(void) {
 	/* Read drawing's velocity */
 	double draw_velocity;
 	printf("Please enter the drawing's velocity (mm/s): ");
+	scanf("%lf", &draw_velocity);
 	send_var(&draw_velocity, sizeof(double));
+	printf("\n\n");
 }
 
 void recv_drawing_progress(void) {
-	char response_message[255];
+	char response_message[127];
 	while(recv(client_socket, response_message, sizeof(response_message), 0), *response_message) {
 		printf("%s\n", response_message);
 	}
@@ -84,17 +89,17 @@ void recv_drawing_progress(void) {
 }
 
 void print_header() {
-	printf("--------------------------------------------------------------------------------\n \
-		- University of Brasília - FGA                                                 -\n \
-		- Alumnus: Pedro de Lyra Pereira - 11/0135725                                  -\n \
- 		- Professor: Renato Coral Sampaio                                              -\n \
-		- Subject: Embedded Systems (Electronic Engineering)                           -\n \
-		- Final Project - Remote control of an xy table driven by stepper motors       -\n \
-		--------------------------------------------------------------------------------\n\n");
+	printf("--------------------------------------------------------------------------------\n"
+	       "- University of Brasília - FGA                                                 -\n"
+	       "- Alumnus: Pedro de Lyra Pereira - 11/0135725                                  -\n"
+ 	       "- Professor: Renato Coral Sampaio                                              -\n"
+	       "- Subject: Embedded Systems (Electronic Engineering)                           -\n"
+	       "- Final Project - Remote control of an xy table driven by stepper motors       -\n"
+	       "--------------------------------------------------------------------------------\n\n");
 }
 
 void send_var(void* var, size_t var_sz) {
 	char request_message[255];
-	memcpy(request_message, &var, var_sz);
-	send(client_socket, request_message, strlen(request_message), 0);
+	memcpy(request_message, var, var_sz);
+	send(client_socket, request_message, var_sz, 0);
 }

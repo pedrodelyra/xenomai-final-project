@@ -1,10 +1,15 @@
 #include <stdio.h>
+
+#include <sys/socket.h>
+
 #include <include/drawing.h>
 #include <include/step_motor.h>
 
 double drawing_velocity;
 
 static struct coordinate origin = {.x = 0.0, .y = 0.0};
+
+extern int client_socket;
 
 void draw_rectangle(struct rectangle rectangle, double velocity) {
 	struct coordinates_pair trajectories[5];
@@ -40,6 +45,10 @@ void draw_rectangle(struct rectangle rectangle, double velocity) {
 		printf(" %c(%.2lf, %.2lf)", 'A' + i, rectangle.vertices[i].x, rectangle.vertices[i].y);
 
 	printf("\nTime spent to draw the rectangle: %lfs\n", total_drawing_time);
+
+	// Finish connection
+	char finish_connection_flag = 0;
+	send(client_socket, &finish_connection_flag, sizeof(finish_connection_flag), 0);
 }
 
 void draw_triangle(struct triangle triangle, double velocity) {
@@ -57,7 +66,6 @@ void draw_triangle(struct triangle triangle, double velocity) {
 	}
 
 	precompute_drawing_total_steps(trajectories, 4);
-	track_drawing_progress();
 
 	double total_drawing_time = 0.0;
 	printf("Drawing triangle. . .\n");
@@ -67,6 +75,7 @@ void draw_triangle(struct triangle triangle, double velocity) {
 
 		printf("Source: (%.2lf, %.2lf) -> Destiny (%.2lf, %.2lf)\n", trajectories[i].first.x, trajectories[i].first.y,
 									     trajectories[i].second.x, trajectories[i].second.y);
+		track_drawing_progress();
 		total_drawing_time += control_motors(&trajectories[i]);
 		printf("--------------------------------------------------------------------------------\n\n");
 	}
@@ -76,6 +85,10 @@ void draw_triangle(struct triangle triangle, double velocity) {
 		printf(" %c(%.2lf, %.2lf)", 'A' + i, triangle.vertices[i].x, triangle.vertices[i].y);
 
 	printf("\nTime spent to draw the triangle: %lfs\n", total_drawing_time);
+
+	// Finish connection
+	char finish_connection_flag = 0;
+	send(client_socket, &finish_connection_flag, sizeof(finish_connection_flag), 0);
 }
 
 void draw_circle(struct circle circle, double velocity) {
@@ -95,7 +108,7 @@ void draw_circle(struct circle circle, double velocity) {
 	precompute_drawing_total_steps(trajectories, infinity + 1);
 
 	double total_drawing_time = 0.0;
-	printf("Drawing rectangle. . .\n");
+	printf("Drawing circle. . .\n");
 	for(i = 0; i <= infinity; ++i) {
 		if((fabs(trajectories[i].first.x - trajectories[i].second.x) < 1e-6) &&
 		   (fabs(trajectories[i].first.y - trajectories[i].second.y) < 1e-6)) continue;
@@ -110,8 +123,12 @@ void draw_circle(struct circle circle, double velocity) {
 	printf("Circle vertices:");
 	for(i = 0; i < infinity; ++i) {
 		if((i % 4) == 0) printf("\n");
-		printf("%c(%.2lf, %.2lf) ", 'A' + i, circle.vertices[i].x, circle.vertices[i].y);
+		printf("%c(%6.2lf, %6.2lf) ", 'A' + i, circle.vertices[i].x, circle.vertices[i].y);
 	}
 
 	printf("\nTime spent to draw the circle: %lfs\n", total_drawing_time);
+
+	// Finish connection
+	char finish_connection_flag = 0;
+	send(client_socket, &finish_connection_flag, sizeof(finish_connection_flag), 0);
 }

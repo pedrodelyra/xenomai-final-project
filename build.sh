@@ -6,3 +6,4 @@ export LDFLAGS="$(xeno-config --skin=native --ldflags)"
 export LD_LIBRARY_PATH=/usr/xenomai/lib
 
 gcc $CFLAGS $LDFLAGS -lm lib/*.c server/server.c -I. -L./lib -o bin/server
+gcc $CFLAGS $LDFLAGS -lm lib/*.c client/client.c -I. -L./lib -o bin/client

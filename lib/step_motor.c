@@ -199,7 +199,7 @@ void move_motor_y(void* args) {
 }
 
 void monitor_tasks(void* args) {
-	char response_message[512];
+	char response_message[512] = {0};
 	int current_steps;
 
 begin_tracker:;
@@ -207,9 +207,9 @@ begin_tracker:;
 	current_steps = motors_total_steps;
 	rt_mutex_release(&mutex);
 
-	rt_sprintf(response_message, "*****************************************\n"
-				     "** Drawing status: %6.2lf%% (%4d/%4d) **\n"
-				     "*****************************************\n", 100 * current_steps / (double) drawing_total_steps,
+	sprintf(response_message, "*****************************************\n"
+				  "** Drawing status: %6.02lf%% (%4d/%4d) **\n"
+				  "*****************************************\n", 100 * current_steps / (double) drawing_total_steps,
 				     							current_steps, drawing_total_steps);
 
 	send(client_socket, response_message, strlen(response_message), 0);
