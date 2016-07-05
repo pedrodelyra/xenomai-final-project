@@ -1,12 +1,14 @@
-#include <include/step_motor.h>
-
-#include <sys/mman.h>
-#include <native/task.h>
-#include <native/mutex.h>
-#include <rtdk.h>
-
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <sys/socket.h>
+#include <sys/mman.h>
+
+#include <rtdk.h>
+#include <native/task.h>
+#include <native/mutex.h>
+
+#include <include/step_motor.h>
 
 #define MOTOR_X_TASK_NAME "X-axis motor's task"
 #define MOTOR_X_TASK_PRIO 50
@@ -36,6 +38,7 @@ void (*rt_tasks_routine[3])(void*) = {NULL, move_motor_x, move_motor_y};
 
 struct step_motor motor_x, motor_y;
 
+extern int client_socket;
 extern double drawing_velocity;
 
 struct step_motor create_step_motor(bool pulse, bool direction) {
@@ -49,6 +52,7 @@ void clean_up(void);
 void execute_motors_rt_tasks(int num_steps_x, int num_steps_y);
 
 int drawing_total_steps;
+
 void precompute_drawing_total_steps(struct coordinates_pair *trajectories, int num_trajectories) {
 	int i;
 	for(i = drawing_total_steps = 0; i < num_trajectories; ++i) {
@@ -195,16 +199,20 @@ void move_motor_y(void* args) {
 }
 
 void monitor_tasks(void* args) {
+	char response_message[512];
 	int current_steps;
 
 begin_tracker:;
 	rt_mutex_acquire(&mutex, TM_INFINITE);
 	current_steps = motors_total_steps;
 	rt_mutex_release(&mutex);
-	rt_printf("*****************************************\n");
-	rt_printf("** Drawing status: %6.2lf%% (%4d/%4d) **\n", 100 * current_steps / (double) drawing_total_steps, current_steps, drawing_total_steps);
-	rt_printf("*****************************************\n");
 
+	rt_sprintf(response_message, "*****************************************\n"
+				     "** Drawing status: %6.2lf%% (%4d/%4d) **\n"
+				     "*****************************************\n", 100 * current_steps / (double) drawing_total_steps,
+				     							current_steps, drawing_total_steps);
+
+	send(client_socket, response_message, strlen(response_message), 0);
 	if(rt_task_wait_period(NULL)) {
 		rt_fprintf(stderr, "An error occurred while waiting for the next rt_tracker's periodic release point.\n");
 		exit(EXIT_FAILURE);	

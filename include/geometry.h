@@ -1,5 +1,6 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
+
 #include <math.h>
 
 #define infinity 20
